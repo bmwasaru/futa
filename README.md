@@ -9,8 +9,14 @@ Clean your images locally using your local browser, no data sent to a server. Th
 
 #### Screenshot
 
-Here is a screenshot of the web app add to my dock on MacOS
+Here is a screenshot of the web app
 
 <p align="centre">
-    <img src="screenshot.png" width=100%>
+    <img src="screenshot-landing.png" width=100%>
+</p>
+
+This is how the metadata details section looks like
+
+<p align="centre">
+    <img src="screenshot-metadata.png" width=100%>
 </p>
