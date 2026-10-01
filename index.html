@@ -3,336 +3,1556 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>Futa - Erase Metadata</title>
+
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/exifreader@4.41.3/dist/exif-reader.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/heic2any@0.0.3/dist/heic2any.min.js"></script>
+
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#2563eb">
+
+    <meta name="theme-color" content="#a4dae4">
 </head>
+
 <body class="bg-slate-50 min-h-screen flex flex-col items-center p-4 md:p-10 font-sans">
 
+    <!-- Header -->
     <header class="text-center mb-10">
-        <h1 class="text-4xl font-extrabold text-slate-800 tracking-tight text-blue-600">Futa - Erase Metadata</h1>
-        <p class="text-slate-500 mt-2 text-sm">Supporting JPEG, PNG, WEBP, and <b>HEIC</b> (iPhone).</p>
-        <div id="stats-banner" class="hidden mt-4 inline-block bg-green-600 text-white px-4 py-1 rounded-full text-xs font-bold shadow-sm">
-            Total Tags Scrubbed: <span id="total-tags">0</span>
+
+        <h1 class="text-4xl font-extrabold text-slate-800 tracking-tight text-blue-600">
+            Futa - Erase Metadata
+        </h1>
+
+        <p class="text-slate-500 mt-2 text-sm">
+            Supporting JPEG, PNG, WEBP, and <b>HEIC</b> (iPhone).
+        </p>
+
+        <div
+            id="stats-banner"
+            class="hidden mt-4 inline-block bg-green-600 text-white px-4 py-1 rounded-full text-xs font-bold shadow-sm"
+        >
+            Total Tags Scrubbed:
+            <span id="total-tags">0</span>
         </div>
+
     </header>
 
-    <main class="w-full max-w-2xl bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-100">
-        <div id="drop-zone" class="relative m-6 border-4 border-dashed border-slate-200 rounded-2xl p-12 transition-all flex flex-col items-center justify-center hover:border-blue-400 hover:bg-blue-50 group">
-            <input type="file" id="file-input" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" multiple accept="image/jpeg, image/png, image/webp, image/heic, .heic">
-            <div class="bg-blue-100 p-4 rounded-full mb-4 text-blue-600 group-hover:scale-110 transition-transform">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+
+    <!-- Main -->
+    <main
+        class="w-full max-w-2xl bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-100"
+    >
+
+        <!-- Drop zone -->
+        <div
+            id="drop-zone"
+            class="relative m-6 border-4 border-dashed border-slate-200 rounded-2xl p-12 transition-all flex flex-col items-center justify-center hover:border-blue-400 hover:bg-blue-50 group"
+        >
+
+            <input
+                type="file"
+                id="file-input"
+                class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                multiple
+                accept="image/jpeg, image/png, image/webp, image/heic, .heic"
+            >
+
+            <div
+                class="bg-blue-100 p-4 rounded-full mb-4 text-blue-600 group-hover:scale-110 transition-transform"
+            >
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-10 w-10"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
+                    />
                 </svg>
             </div>
+
             <p class="text-lg font-semibold text-slate-700 pointer-events-none text-center">
-                Drop photos here or <span class="text-blue-600">click to browse</span>
+                Drop photos here or
+                <span class="text-blue-600">
+                    click to browse
+                </span>
             </p>
+
         </div>
 
-        <div id="status-container" class="px-8 pb-8 space-y-4 hidden">
-            <div class="flex justify-between items-center border-b pb-4">
-                <h3 class="font-bold text-slate-800 uppercase tracking-wider text-[10px] font-mono">Status Queue</h3>
-                <button id="download-all" class="bg-blue-600 text-white text-[10px] font-bold px-4 py-2 rounded-lg hover:bg-blue-700 transition active:scale-95 shadow-md hidden">
+
+        <!-- Status -->
+        <div
+            id="status-container"
+            class="px-8 pb-8 space-y-4 hidden"
+        >
+
+            <div
+                class="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center border-b pb-4"
+            >
+
+                <h3
+                    class="font-bold text-slate-800 uppercase tracking-wider text-[10px] font-mono"
+                >
+                    Status Queue
+                </h3>
+
+                <button
+                    id="download-all"
+                    class="bg-blue-600 text-white text-[10px] font-bold px-4 py-2 rounded-lg hover:bg-blue-700 transition active:scale-95 shadow-md hidden"
+                >
                     Download Zip Package
                 </button>
+
             </div>
-            <ul id="file-list" class="max-h-72 overflow-y-auto divide-y divide-slate-100"></ul>
+
+
+            <ul
+                id="file-list"
+                class="max-h-[42rem] overflow-y-auto divide-y divide-slate-100"
+            ></ul>
+
         </div>
+
     </main>
 
-    <div id="error-console" class="hidden w-full max-w-2xl mt-6 p-4 bg-slate-900 rounded-xl shadow-inner">
-        <h4 class="text-slate-400 font-bold text-[10px] uppercase mb-2 border-b border-slate-800 pb-1">Debug Terminal</h4>
-        <div id="error-logs" class="text-[10px] font-mono text-green-400 max-h-40 overflow-y-auto leading-relaxed"></div>
+
+    <!-- Debug console -->
+    <div
+        id="error-console"
+        class="hidden w-full max-w-2xl mt-6 p-4 bg-slate-900 rounded-xl shadow-inner"
+    >
+
+        <h4
+            class="text-slate-400 font-bold text-[10px] uppercase mb-2 border-b border-slate-800 pb-1"
+        >
+            Debug Terminal
+        </h4>
+
+        <div
+            id="error-logs"
+            class="text-[10px] font-mono text-green-400 max-h-40 overflow-y-auto leading-relaxed"
+        ></div>
+
     </div>
 
+
+    <!-- Footer -->
     <footer class="mt-8 text-slate-400 text-xs text-center max-w-md">
-        Files are processed in your browser memory via the Canvas API. <br>
+        Files are processed in your browser memory via the Canvas API.
+        <br>
         <strong>No data is ever sent to a server.</strong>
     </footer>
 
+
     <script>
-        const fileInput = document.getElementById('file-input');
-        const fileList = document.getElementById('file-list');
-        const statusContainer = document.getElementById('status-container');
-        const totalTagsEl = document.getElementById('total-tags');
-        const statsBanner = document.getElementById('stats-banner');
-        const downloadAllBtn = document.getElementById('download-all');
-        const errorConsole = document.getElementById('error-console');
-        const errorLogs = document.getElementById('error-logs');
-        
-        let processedMap = new Map(); 
+
+        /*
+        |--------------------------------------------------------------------------
+        | Elements
+        |--------------------------------------------------------------------------
+        */
+
+        const fileInput =
+            document.getElementById('file-input');
+
+        const fileList =
+            document.getElementById('file-list');
+
+        const statusContainer =
+            document.getElementById('status-container');
+
+        const totalTagsEl =
+            document.getElementById('total-tags');
+
+        const statsBanner =
+            document.getElementById('stats-banner');
+
+        const downloadAllBtn =
+            document.getElementById('download-all');
+
+        const errorConsole =
+            document.getElementById('error-console');
+
+        const errorLogs =
+            document.getElementById('error-logs');
+
+        const processedMap = new Map();
+
         let grandTotalTags = 0;
 
-        function logStatus(msg, isError = false) {
-            errorConsole.classList.remove('hidden');
-            const entry = document.createElement('div');
-            entry.className = isError ? "text-red-400" : "text-green-400";
-            entry.textContent = `> ${new Date().toLocaleTimeString()}: ${msg}`;
+
+        // Metadata groups //
+
+        const METADATA_GROUPS = [
+            ['exif', 'EXIF'],
+            ['iptc', 'IPTC'],
+            ['xmp', 'XMP'],
+            ['icc', 'ICC Profile'],
+            ['photoshop', 'Photoshop'],
+            ['makerNotes', 'Maker Notes'],
+            ['mpf', 'Multi-Picture Format'],
+            ['pngText', 'PNG Text']
+        ];
+
+
+        /* Logging */
+
+        function logStatus(
+            message,
+            isError = false
+        ) {
+
+            errorConsole
+                .classList
+                .remove('hidden');
+
+
+            const entry =
+                document.createElement('div');
+
+
+            entry.className =
+                isError
+                    ? 'text-red-400'
+                    : 'text-green-400';
+
+
+            entry.textContent =
+                `> ${new Date().toLocaleTimeString()}: ${message}`;
+
+
             errorLogs.prepend(entry);
         }
 
-        fileInput.addEventListener('change', (e) => {
-            if (e.target.files.length > 0) handleFiles(e.target.files);
-        });
 
-        async function handleFiles(files) {
-            statusContainer.classList.remove('hidden');
-            
-            for (const file of Array.from(files)) {
-                // Support HEIC and standard images
-                const isHeic = file.name.toLowerCase().endsWith('.heic') || file.type === 'image/heic';
-                if (!file.type.startsWith('image/') && !isHeic) continue;
+        /* Escape user-controlled data before inserting into HTML */
 
-                const ext = isHeic ? 'jpg' : file.name.split('.').pop();
-                const uuidName = `${crypto.randomUUID()}.${ext}`;
-                const fileId = 'f-' + Math.random().toString(36).substr(2, 9);
-                
-                addFileToUI(file.name, uuidName, fileId);
+        function escapeHtml(value) {
+
+            return String(value).replace(
+                /[&<>"']/g,
+                character => {
+
+                    const entities = {
+                        '&': '&amp;',
+                        '<': '&lt;',
+                        '>': '&gt;',
+                        '"': '&quot;',
+                        "'": '&#039;'
+                    };
+
+                    return entities[character];
+                }
+            );
+        }
+
+
+        /* Metadata value formatting */
+
+        function truncateValue(
+            value,
+            maxLength = 600
+        ) {
+
+            const text =
+                String(value);
+
+
+            if (text.length <= maxLength) {
+                return text;
+            }
+
+
+            return (
+                text.slice(0, maxLength) +
+                `… (${text.length} characters)`
+            );
+        }
+
+
+        function formatRawValue(value) {
+
+            if (
+                value === undefined ||
+                value === null
+            ) {
+                return '';
+            }
+
+
+            if (
+                typeof value === 'string' ||
+                typeof value === 'number' ||
+                typeof value === 'boolean'
+            ) {
+
+                return truncateValue(
+                    String(value)
+                );
+            }
+
+
+            /*
+             * Don't dump huge binary arrays into the UI.
+             */
+            if (Array.isArray(value)) {
+
+                if (value.length > 30) {
+
+                    const preview =
+                        value
+                            .slice(0, 12)
+                            .map(item => String(item))
+                            .join(', ');
+
+
+                    return truncateValue(
+                        `${preview} … (${value.length} values)`
+                    );
+                }
+
+
+                return truncateValue(
+                    value
+                        .map(item => {
+
+                            if (
+                                item &&
+                                typeof item === 'object'
+                            ) {
+
+                                try {
+                                    return JSON.stringify(item);
+                                } catch {
+                                    return String(item);
+                                }
+                            }
+
+                            return String(item);
+                        })
+                        .join(', ')
+                );
+            }
+
+
+            if (typeof value === 'object') {
 
                 try {
-                    // 1. Get metadata
-                    const tagCount = await getMetadataCount(file);
-                    
-                    // 2. Process
-                    let blobToProcess = file;
-                    let outputMimeType = file.type;
 
-                    if (isHeic) {
-                        logStatus(`Converting HEIC to JPEG...`);
-
-                        const converted = await heic2any({
-                            blob: file,
-                            toType: "image/jpeg",
-                            quality: 0.8
-                        });
-
-                        blobToProcess = Array.isArray(converted)
-                            ? converted[0]
-                            : converted;
-
-                        outputMimeType = "image/jpeg";
-                    }
-
-                    if (!outputMimeType) {
-                        const extension = file.name
-                            .split('.')
-                            .pop()
-                            .toLowerCase();
-
-                        const mimeTypes = {
-                            jpg: "image/jpeg",
-                            jpeg: "image/jpeg",
-                            png: "image/png",
-                            webp: "image/webp"
-                        };
-
-                        outputMimeType = mimeTypes[extension] || "image/jpeg";
-                    }
-
-                    const arrayBuffer = await blobToProcess.arrayBuffer();
-
-                    const cleanBlob = await stripMetadataFromBuffer(
-                        arrayBuffer,
-                        blobToProcess.type || outputMimeType,
-                        outputMimeType
+                    return truncateValue(
+                        JSON.stringify(
+                            value,
+                            null,
+                            2
+                        )
                     );
-                    
-                    processedMap.set(uuidName, cleanBlob);
-                    updateFileUI(fileId, uuidName, cleanBlob, tagCount);
-                    
-                    grandTotalTags += tagCount;
-                    totalTagsEl.textContent = grandTotalTags;
-                    statsBanner.classList.remove('hidden');
-                    logStatus(`Success: ${uuidName}`);
 
-                } catch (err) {
-                    logStatus(`Error [${file.name}]: ${err.message}`, true);
-                    const li = document.getElementById(fileId);
-                    if(li) li.querySelector('.status').innerHTML = `<span class="text-red-500 font-bold text-[10px]">FAILED</span>`;
+                } catch {
+
+                    return truncateValue(
+                        String(value)
+                    );
                 }
             }
-            if (processedMap.size > 1) downloadAllBtn.classList.remove('hidden');
+
+
+            return truncateValue(
+                String(value)
+            );
         }
 
-        function countTagGroup(group) {
-            if (!group || typeof group !== 'object') {
-                return 0;
+
+        function formatMetadataValue(tag) {
+
+            if (
+                tag === undefined ||
+                tag === null
+            ) {
+                return '';
             }
 
-            return Object.keys(group)
-                .filter((key) => key !== '_raw')
-                .length;
+
+            /*
+             * ExifReader normally supplies a human-readable
+             * description. Prefer that.
+             */
+            if (
+                typeof tag === 'object' &&
+                tag.description !== undefined &&
+                tag.description !== null
+            ) {
+
+                const description =
+                    String(
+                        tag.description
+                    ).trim();
+
+
+                if (description) {
+
+                    return truncateValue(
+                        description
+                    );
+                }
+            }
+
+
+            /*
+             * Otherwise use the underlying value.
+             */
+            if (
+                typeof tag === 'object' &&
+                tag.value !== undefined
+            ) {
+
+                return formatRawValue(
+                    tag.value
+                );
+            }
+
+
+            return formatRawValue(tag);
         }
 
-        async function getMetadataCount(file) {
-            try {
-                const tags = await ExifReader.load(file, {
-                    expanded: true,
-                    includeUnknown: true
-                });
 
-                const metadataGroups = [
-                    'exif',
-                    'iptc',
-                    'xmp',
-                    'icc',
-                    'photoshop',
-                    'makerNotes',
-                    'pngText'
-                ];
+        /* Extract metadata tags + values */
 
-                let count = metadataGroups.reduce(
-                    (total, group) => total + countTagGroup(tags[group]),
-                    0
+        function getTagDetails(group) {
+
+            if (
+                !group ||
+                typeof group !== 'object'
+            ) {
+                return [];
+            }
+
+
+            return Object.entries(group)
+
+                /*
+                 * Don't display raw XMP packets.
+                 */
+                .filter(
+                    ([name]) =>
+                        name !== '_raw'
+                )
+
+                .map(
+                    ([name, data]) => ({
+                        name,
+                        value:
+                            formatMetadataValue(data)
+                    })
                 );
+        }
 
-                // Embedded EXIF thumbnails are also removed by Canvas.
+
+        /* Read metadata */
+
+        async function getMetadataInfo(file) {
+
+            try {
+
+                const tags =
+                    await ExifReader.load(
+                        file,
+                        {
+                            expanded: true,
+                            includeUnknown: true
+                        }
+                    );
+
+
+                const groups = [];
+
+                let count = 0;
+
+
+                for (
+                    const [key, label]
+                    of METADATA_GROUPS
+                ) {
+
+                    const details =
+                        getTagDetails(
+                            tags[key]
+                        );
+
+
+                    if (
+                        details.length === 0
+                    ) {
+                        continue;
+                    }
+
+
+                    groups.push({
+                        name: label,
+                        tags: details
+                    });
+
+
+                    count +=
+                        details.length;
+                }
+
+
+                /* Embedded EXIF thumbnail. Do not display the thumbnail bytes; just report its presence. */
                 if (tags.Thumbnail) {
+
+                    let description =
+                        'Embedded preview image';
+
+
+                    if (
+                        tags.Thumbnail.width &&
+                        tags.Thumbnail.height
+                    ) {
+
+                        description =
+                            `Embedded preview image (${tags.Thumbnail.width} × ${tags.Thumbnail.height})`;
+                    }
+
+
+                    groups.push({
+                        name:
+                            'EXIF Thumbnail',
+
+                        tags: [
+                            {
+                                name:
+                                    'Embedded Thumbnail',
+
+                                value:
+                                    description
+                            }
+                        ]
+                    });
+
+
                     count += 1;
                 }
 
-                return count;
+
+                return {
+                    count,
+                    groups
+                };
+
             } catch (error) {
-                /*
-                * MetadataMissingError simply means the image does not
-                * contain metadata that ExifReader understands.
-                */
+
+
                 if (
                     ExifReader.errors &&
-                    error instanceof ExifReader.errors.MetadataMissingError
+                    ExifReader.errors.MetadataMissingError &&
+                    error instanceof
+                        ExifReader.errors.MetadataMissingError
                 ) {
-                    return 0;
+
+                    return {
+                        count: 0,
+                        groups: []
+                    };
                 }
+
 
                 logStatus(
                     `Metadata read warning [${file.name}]: ${error.message}`,
                     true
                 );
 
-                return 0;
+
+                return {
+                    count: 0,
+                    groups: []
+                };
             }
         }
+
+
+        /* File selection */
+
+        fileInput.addEventListener(
+            'change',
+            event => {
+
+                if (
+                    event.target.files.length > 0
+                ) {
+
+                    handleFiles(
+                        event.target.files
+                    );
+                }
+            }
+        );
+
+
+        /* Main processing loop */
+
+        async function handleFiles(files) {
+
+            statusContainer
+                .classList
+                .remove('hidden');
+
+
+            for (
+                const file
+                of Array.from(files)
+            ) {
+
+                const fileNameLower =
+                    file.name.toLowerCase();
+
+
+                const isHeic =
+                    fileNameLower.endsWith('.heic') ||
+                    fileNameLower.endsWith('.heif') ||
+                    file.type === 'image/heic' ||
+                    file.type === 'image/heif';
+
+
+                if (
+                    !file.type.startsWith('image/') &&
+                    !isHeic
+                ) {
+                    continue;
+                }
+
+
+                /* HEIC becomes JPEG. */
+                const extension =
+                    isHeic
+                        ? 'jpg'
+                        : (
+                            file.name
+                                .split('.')
+                                .pop()
+                                .toLowerCase()
+                        );
+
+
+                const uuidName =
+                    `${crypto.randomUUID()}.${extension}`;
+
+
+                const fileId =
+                    'f-' +
+                    Math.random()
+                        .toString(36)
+                        .substring(2, 11);
+
+
+                addFileToUI(
+                    file.name,
+                    uuidName,
+                    fileId
+                );
+
+
+                try {
+
+                    /* Read metadata BEFORE cleaning. */
+                    const metadata =
+                        await getMetadataInfo(file);
+
+
+                    /* Prepare image. */
+                    let blobToProcess =
+                        file;
+
+
+                    let outputMimeType =
+                        file.type;
+
+
+                    /* Convert HEIC. */
+                    if (isHeic) {
+
+                        logStatus(
+                            'Converting HEIC to JPEG...'
+                        );
+
+
+                        const converted =
+                            await heic2any({
+                                blob: file,
+                                toType: 'image/jpeg',
+                                quality: 0.8
+                            });
+
+
+                        blobToProcess =
+                            Array.isArray(converted)
+                                ? converted[0]
+                                : converted;
+
+
+                        outputMimeType =
+                            'image/jpeg';
+                    }
+
+
+                    /* If browser did not provide MIME type, detect using extension. */
+                    if (!outputMimeType) {
+
+                        const extension =
+                            file.name
+                                .split('.')
+                                .pop()
+                                .toLowerCase();
+
+
+                        const mimeTypes = {
+                            jpg: 'image/jpeg',
+                            jpeg: 'image/jpeg',
+                            png: 'image/png',
+                            webp: 'image/webp'
+                        };
+
+
+                        outputMimeType =
+                            mimeTypes[extension] ||
+                            'image/jpeg';
+                    }
+
+
+                    /* Clean image. */
+                    const arrayBuffer =
+                        await blobToProcess
+                            .arrayBuffer();
+
+
+                    const cleanBlob =
+                        await stripMetadataFromBuffer(
+                            arrayBuffer,
+                            blobToProcess.type ||
+                                outputMimeType,
+                            outputMimeType
+                        );
+
+
+                    processedMap.set(
+                        uuidName,
+                        cleanBlob
+                    );
+
+
+                    /* Render result. */
+                    updateFileUI(
+                        fileId,
+                        uuidName,
+                        cleanBlob,
+                        metadata
+                    );
+
+
+                    /* Update statistics. */
+                    grandTotalTags +=
+                        metadata.count;
+
+
+                    totalTagsEl.textContent =
+                        grandTotalTags;
+
+
+                    statsBanner
+                        .classList
+                        .remove('hidden');
+
+
+                    logStatus(
+                        `Success: ${uuidName}`
+                    );
+
+                } catch (error) {
+
+                    logStatus(
+                        `Error [${file.name}]: ${error.message}`,
+                        true
+                    );
+
+
+                    const li =
+                        document.getElementById(
+                            fileId
+                        );
+
+
+                    if (li) {
+
+                        li
+                            .classList
+                            .remove(
+                                'animate-pulse'
+                            );
+
+
+                        const status =
+                            li.querySelector(
+                                '.status'
+                            );
+
+
+                        status.innerHTML = `
+                            <span class="text-red-500 font-bold text-[10px]">
+                                FAILED
+                            </span>
+                        `;
+                    }
+                }
+            }
+
+
+            if (
+                processedMap.size > 1
+            ) {
+
+                downloadAllBtn
+                    .classList
+                    .remove('hidden');
+            }
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Strip metadata
+        |--------------------------------------------------------------------------
+        |
+        | Canvas decodes the image and writes fresh pixel data into
+        | a newly encoded image, leaving the original metadata behind.
+        |
+        */
 
         async function stripMetadataFromBuffer(
             buffer,
             inputMimeType,
             outputMimeType
         ) {
-            return new Promise((resolve, reject) => {
-                const blob = new Blob(
-                    [buffer],
-                    { type: inputMimeType }
-                );
 
-                const url = URL.createObjectURL(blob);
-                const img = new Image();
+            return new Promise(
+                (resolve, reject) => {
 
-                img.onload = () => {
-                    const canvas = document.createElement('canvas');
-
-                    canvas.width = img.naturalWidth;
-                    canvas.height = img.naturalHeight;
-
-                    const ctx = canvas.getContext('2d');
-
-                    if (!ctx) {
-                        URL.revokeObjectURL(url);
-                        reject(new Error("Could not create canvas context"));
-                        return;
-                    }
-
-                    ctx.drawImage(img, 0, 0);
-
-                    URL.revokeObjectURL(url);
-
-                    const quality =
-                        outputMimeType === "image/jpeg" ||
-                        outputMimeType === "image/webp"
-                            ? 0.9
-                            : undefined;
-
-                    canvas.toBlob(
-                        (result) => {
-                            if (!result) {
-                                reject(
-                                    new Error(
-                                        `Could not encode ${outputMimeType}`
-                                    )
-                                );
-                                return;
+                    const blob =
+                        new Blob(
+                            [buffer],
+                            {
+                                type:
+                                    inputMimeType
                             }
+                        );
 
-                            resolve(result);
-                        },
-                        outputMimeType,
-                        quality
-                    );
-                };
 
-                img.onerror = () => {
-                    URL.revokeObjectURL(url);
-                    reject(new Error("Image decode failed"));
-                };
+                    const url =
+                        URL.createObjectURL(
+                            blob
+                        );
 
-                img.src = url;
-            });
+
+                    const image =
+                        new Image();
+
+
+                    image.onload = () => {
+
+                        const canvas =
+                            document.createElement(
+                                'canvas'
+                            );
+
+
+                        canvas.width =
+                            image.naturalWidth;
+
+
+                        canvas.height =
+                            image.naturalHeight;
+
+
+                        const context =
+                            canvas.getContext(
+                                '2d'
+                            );
+
+
+                        if (!context) {
+
+                            URL.revokeObjectURL(
+                                url
+                            );
+
+
+                            reject(
+                                new Error(
+                                    'Could not create canvas context'
+                                )
+                            );
+
+
+                            return;
+                        }
+
+
+                        context.drawImage(
+                            image,
+                            0,
+                            0
+                        );
+
+
+                        URL.revokeObjectURL(
+                            url
+                        );
+
+
+                        const quality =
+                            outputMimeType ===
+                                'image/jpeg' ||
+                            outputMimeType ===
+                                'image/webp'
+
+                                ? 0.9
+                                : undefined;
+
+
+                        canvas.toBlob(
+
+                            result => {
+
+                                if (!result) {
+
+                                    reject(
+                                        new Error(
+                                            `Could not encode ${outputMimeType}`
+                                        )
+                                    );
+
+
+                                    return;
+                                }
+
+
+                                resolve(result);
+                            },
+
+                            outputMimeType,
+
+                            quality
+                        );
+                    };
+
+
+                    image.onerror = () => {
+
+                        URL.revokeObjectURL(
+                            url
+                        );
+
+
+                        reject(
+                            new Error(
+                                'Image decode failed'
+                            )
+                        );
+                    };
+
+
+                    image.src =
+                        url;
+                }
+            );
         }
 
-        function addFileToUI(originalName, uuidName, id) {
-            const li = document.createElement('li');
-            li.id = id;
-            li.className = "py-4 flex justify-between items-center animate-pulse";
+
+        /* Add file to queue */
+
+        function addFileToUI(
+            originalName,
+            uuidName,
+            id
+        ) {
+
+            const li =
+                document.createElement(
+                    'li'
+                );
+
+
+            li.id =
+                id;
+
+
+            /* The file row stays at the top. Metadata gets its own full-width section underneath. */
+            li.className =
+                'py-5 animate-pulse';
+
+
             li.innerHTML = `
-                <div class="truncate pr-4">
-                    <p class="text-[9px] text-slate-400 font-mono truncate w-40">${originalName}</p>
-                    <p class="text-xs font-semibold text-slate-700 truncate">${uuidName}</p>
+
+                <div
+                    class="file-main-row flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center"
+                >
+
+                    <div
+                        class="truncate pr-4 min-w-0"
+                    >
+
+                        <p
+                            class="text-[9px] text-slate-400 font-mono truncate"
+                            title="${escapeHtml(originalName)}"
+                        >
+                            ${escapeHtml(originalName)}
+                        </p>
+
+
+                        <p
+                            class="text-xs font-semibold text-slate-700 truncate"
+                        >
+                            ${escapeHtml(uuidName)}
+                        </p>
+
+                    </div>
+
+
+                    <div
+                        class="status text-[10px] text-slate-300 italic"
+                    >
+                        Processing...
+                    </div>
+
                 </div>
-                <div class="status text-[10px] text-slate-300 italic">Processing...</div>
+
+
+                <div
+                    class="metadata-area hidden w-full mt-4"
+                ></div>
             `;
+
+
             fileList.prepend(li);
         }
 
-        function updateFileUI(id, uuidName, blob, tagCount) {
-            const li = document.getElementById(id);
-            if (!li) return;
-            li.classList.remove('animate-pulse');
-            const url = URL.createObjectURL(blob);
-            li.querySelector('.status').innerHTML = `
-                <div class="flex flex-col items-end">
-                    <span class="text-[8px] font-bold text-orange-500 mb-1 tracking-tighter">${tagCount} TAGS REMOVED</span>
-                    <a href="${url}" download="${uuidName}" class="bg-blue-600 text-white text-[9px] font-bold px-2 py-1 rounded shadow-sm hover:bg-blue-700 transition">SAVE</a>
-                </div>
+
+        /* Render metadata tag */
+
+        function renderMetadataTag(tag) {
+
+            const tagName =
+                escapeHtml(
+                    tag.name
+                );
+
+
+            const hasValue =
+                tag.value !== undefined &&
+                tag.value !== null &&
+                String(tag.value).trim() !== '';
+
+
+            const tagValue =
+                hasValue
+                    ? escapeHtml(
+                        tag.value
+                    )
+                    : 'No readable value';
+
+
+            return `
+
+                <li
+                    class="grid grid-cols-1 sm:grid-cols-[200px_minmax(0,1fr)] gap-1 sm:gap-6 py-3 border-b border-slate-100 last:border-b-0"
+                >
+
+                    <div
+                        class="text-[9px] font-bold text-slate-700 font-mono break-words"
+                    >
+                        ${tagName}
+                    </div>
+
+
+                    <div
+                        class="text-[9px] text-slate-500 break-words whitespace-pre-wrap"
+                    >
+                        ${tagValue}
+                    </div>
+
+                </li>
             `;
         }
 
-        downloadAllBtn.addEventListener('click', async () => {
-            try {
-                downloadAllBtn.textContent = "Packing Zip...";
-                downloadAllBtn.disabled = true;
-                const zip = new JSZip();
-                for (let [name, blob] of processedMap) {
-                    const buffer = await blob.arrayBuffer();
-                    zip.file(name, buffer, { binary: true });
-                }
-                const content = await zip.generateAsync({ type: "blob" });
-                const link = document.createElement('a');
-                link.href = URL.createObjectURL(content);
-                link.download = `scrubbed_package.zip`;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                downloadAllBtn.textContent = "Download Zip Package";
-                downloadAllBtn.disabled = false;
-            } catch (err) {
-                logStatus(`Zip Error: ${err.message}`, true);
-                downloadAllBtn.disabled = false;
+
+        /* Render metadata group */
+
+        function renderMetadataGroup(group) {
+
+            const tagsHtml =
+                group.tags
+                    .map(
+                        renderMetadataTag
+                    )
+                    .join('');
+
+
+            return `
+
+                <section
+                    class="mb-6 last:mb-0"
+                >
+
+                    <div
+                        class="flex items-center justify-between gap-4 mb-2"
+                    >
+
+                        <h4
+                            class="text-[9px] font-extrabold uppercase tracking-wider text-slate-500"
+                        >
+                            ${escapeHtml(group.name)}
+                        </h4>
+
+
+                        <span
+                            class="text-[8px] text-slate-400 font-mono whitespace-nowrap"
+                        >
+                            ${group.tags.length}
+                            ${
+                                group.tags.length === 1
+                                    ? 'tag'
+                                    : 'tags'
+                            }
+                        </span>
+
+                    </div>
+
+
+                    <ul
+                        class="bg-white rounded-xl border border-slate-200 px-4"
+                    >
+                        ${tagsHtml}
+                    </ul>
+
+                </section>
+            `;
+        }
+
+
+        /* Update processed file UI */
+
+        function updateFileUI(
+            id,
+            uuidName,
+            blob,
+            metadata
+        ) {
+
+            const li =
+                document.getElementById(
+                    id
+                );
+
+
+            if (!li) {
+                return;
             }
-        });
+
+
+            li
+                .classList
+                .remove(
+                    'animate-pulse'
+                );
+
+
+            const fileUrl =
+                URL.createObjectURL(
+                    blob
+                );
+
+
+            const statusElement =
+                li.querySelector(
+                    '.status'
+                );
+
+
+            const metadataArea =
+                li.querySelector(
+                    '.metadata-area'
+                );
+
+
+            /* Compact top row: [X TAGS REMOVED] [Show removed tags] [SAVE] */
+            statusElement.innerHTML = `
+
+                <div
+                    class="flex flex-wrap items-center gap-2 sm:justify-end"
+                >
+
+                    <span
+                        class="inline-flex items-center gap-1 bg-orange-50 text-orange-600 border border-orange-100 rounded-full px-2 py-1 text-[8px] font-bold tracking-tighter whitespace-nowrap"
+                    >
+
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            class="w-3 h-3"
+                            viewBox="0 0 20 20"
+                            fill="currentColor"
+                        >
+                            <path
+                                fill-rule="evenodd"
+                                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                clip-rule="evenodd"
+                            />
+                        </svg>
+
+
+                        ${metadata.count}
+
+                        ${
+                            metadata.count === 1
+                                ? 'TAG REMOVED'
+                                : 'TAGS REMOVED'
+                        }
+
+                    </span>
+
+
+                    ${
+                        metadata.count > 0
+
+                            ? `
+
+                                <button
+                                    type="button"
+                                    class="metadata-toggle inline-flex items-center gap-1.5 text-[9px] font-semibold text-blue-600 hover:text-blue-700 transition"
+                                >
+
+                                    <svg
+                                        class="metadata-chevron w-3 h-3 transition-transform duration-200"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke="currentColor"
+                                    >
+                                        <path
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                            stroke-width="2"
+                                            d="M19 9l-7 7-7-7"
+                                        />
+                                    </svg>
+
+
+                                    <span
+                                        class="metadata-toggle-label"
+                                    >
+                                        Show removed tags
+                                    </span>
+
+                                </button>
+                            `
+
+                            : `
+
+                                <span
+                                    class="text-[8px] text-slate-400"
+                                >
+                                    No readable metadata found
+                                </span>
+                            `
+                    }
+
+
+                    <a
+                        href="${fileUrl}"
+                        download="${escapeHtml(uuidName)}"
+                        class="bg-blue-600 text-white text-[9px] font-bold px-3 py-1.5 rounded-lg shadow-sm hover:bg-blue-700 transition"
+                    >
+                        SAVE
+                    </a>
+
+                </div>
+            `;
+
+
+            /* No metadata means there is nothing to expand. */
+            if (
+                metadata.count === 0
+            ) {
+                return;
+            }
+
+
+            /* Render the metadata panel using the ENTIRE width underneath the filename/status row. */
+            const groupsHtml =
+                metadata.groups
+                    .map(
+                        renderMetadataGroup
+                    )
+                    .join('');
+
+
+            metadataArea.innerHTML = `
+
+                <div
+                    class="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 sm:p-5 shadow-inner"
+                >
+
+                    <div
+                        class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between mb-5 pb-4 border-b border-slate-200"
+                    >
+
+                        <div>
+
+                            <h3
+                                class="text-[10px] font-extrabold uppercase tracking-wider text-slate-700"
+                            >
+                                Removed Metadata
+                            </h3>
+
+
+                            <p
+                                class="text-[9px] text-slate-400 mt-1"
+                            >
+                                Metadata detected in the original image before it was scrubbed.
+                            </p>
+
+                        </div>
+
+
+                        <span
+                            class="text-[9px] text-slate-400 font-mono whitespace-nowrap"
+                        >
+                            ${metadata.count}
+
+                            ${
+                                metadata.count === 1
+                                    ? 'tag'
+                                    : 'tags'
+                            }
+                        </span>
+
+                    </div>
+
+
+                    <div
+                        class="max-h-[28rem] overflow-y-auto pr-1"
+                    >
+                        ${groupsHtml}
+                    </div>
+
+                </div>
+            `;
+
+
+            /* Hidden until user clicks "Show removed tags". */
+            metadataArea
+                .classList
+                .add('hidden');
+
+
+            const toggle =
+                statusElement.querySelector(
+                    '.metadata-toggle'
+                );
+
+
+            const toggleLabel =
+                statusElement.querySelector(
+                    '.metadata-toggle-label'
+                );
+
+
+            const chevron =
+                statusElement.querySelector(
+                    '.metadata-chevron'
+                );
+
+
+            toggle.addEventListener(
+                'click',
+                () => {
+
+                    const isHidden =
+                        metadataArea
+                            .classList
+                            .contains(
+                                'hidden'
+                            );
+
+
+                    if (isHidden) {
+
+                        metadataArea
+                            .classList
+                            .remove(
+                                'hidden'
+                            );
+
+
+                        toggleLabel.textContent =
+                            'Hide removed tags';
+
+
+                        chevron
+                            .classList
+                            .add(
+                                'rotate-180'
+                            );
+
+                    } else {
+
+                        metadataArea
+                            .classList
+                            .add(
+                                'hidden'
+                            );
+
+
+                        toggleLabel.textContent =
+                            'Show removed tags';
+
+
+                        chevron
+                            .classList
+                            .remove(
+                                'rotate-180'
+                            );
+                    }
+                }
+            );
+        }
+
+
+        /* Download all */
+
+        downloadAllBtn.addEventListener(
+            'click',
+            async () => {
+
+                try {
+
+                    downloadAllBtn.textContent =
+                        'Packing Zip...';
+
+
+                    downloadAllBtn.disabled =
+                        true;
+
+
+                    const zip =
+                        new JSZip();
+
+
+                    for (
+                        const [name, blob]
+                        of processedMap
+                    ) {
+
+                        const buffer =
+                            await blob
+                                .arrayBuffer();
+
+
+                        zip.file(
+                            name,
+                            buffer,
+                            {
+                                binary: true
+                            }
+                        );
+                    }
+
+
+                    const content =
+                        await zip.generateAsync({
+                            type: 'blob'
+                        });
+
+
+                    const zipUrl =
+                        URL.createObjectURL(
+                            content
+                        );
+
+
+                    const link =
+                        document.createElement(
+                            'a'
+                        );
+
+
+                    link.href =
+                        zipUrl;
+
+
+                    link.download =
+                        'scrubbed_package.zip';
+
+
+                    document.body
+                        .appendChild(
+                            link
+                        );
+
+
+                    link.click();
+
+
+                    document.body
+                        .removeChild(
+                            link
+                        );
+
+
+                    /* Clean up temporary object URL. */
+                    setTimeout(
+                        () => {
+
+                            URL.revokeObjectURL(
+                                zipUrl
+                            );
+
+                        },
+                        1000
+                    );
+
+
+                    downloadAllBtn.textContent =
+                        'Download Zip Package';
+
+
+                    downloadAllBtn.disabled =
+                        false;
+
+                } catch (error) {
+
+                    logStatus(
+                        `Zip Error: ${error.message}`,
+                        true
+                    );
+
+
+                    downloadAllBtn.textContent =
+                        'Download Zip Package';
+
+
+                    downloadAllBtn.disabled =
+                        false;
+                }
+            }
+        );
+
     </script>
+
 </body>
 </html>
