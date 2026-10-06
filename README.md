@@ -15,6 +15,12 @@ Here is a screenshot of the web app
     <img src="screenshot-landing.png" width=100%>
 </p>
 
+Here is a screenshot when an image is ready for download
+<p align="centre">
+    <img src="screenshot-image-uploaded.png" width=100%>
+</p>
+
+
 This is how the metadata details section looks like
 
 <p align="centre">
